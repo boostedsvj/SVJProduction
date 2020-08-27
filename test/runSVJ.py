@@ -141,6 +141,8 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
             output_attr.outputCommands.extend([
                 'keep *_genParticlesForJets_*_*',
                 'keep *_genParticlesForJetsNoNu_*_*',
+                'keep *_genCandidatesForMET_*_*',
+                'keep *_genParticlesForMETAllVisible_*_*',
                 'keep *_bsmHtFilter_*_*',
             ])
 
