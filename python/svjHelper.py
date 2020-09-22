@@ -123,7 +123,7 @@ class svjHelper(object):
         return 1000*math.exp(-math.pi/(self.b0*alpha))
 
     # has to be "lambdaHV" because "lambda" is a keyword
-    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0):
+    def setModel(self,channel,mMediator,mDark,rinv,alpha,yukawa=None,lambdaHV=None,generate=True,boost=0,mingenjetpt=0.):
         # check for issues
         if channel!="s" and channel!="t": raise ValueError("Unknown channel: "+channel)
         # store the basic parameters
@@ -136,6 +136,7 @@ class svjHelper(object):
         if isinstance(alpha,str) and alpha[0].isalpha(): self.setAlpha(alpha)
         else: self.alpha = float(alpha)
         self.htCut = boost
+        self.ptCut = mingenjetpt
         self.yukawa = None
         if self.channel=="t" and not self.generate: # yukawa not used by pythia "t-channel" generation (only includes strong pair prod)
             self.yukawa = yukawa
