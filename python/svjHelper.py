@@ -138,7 +138,9 @@ class svjHelper(object):
         self.htCut = boost
         self.ptCut = mingenjetpt
         self.yukawa = None
-        if self.channel=="t" and not self.generate: # yukawa not used by pythia "t-channel" generation (only includes strong pair prod)
+        # yukawa not used by pythia "t-channel" generation (only includes strong pair prod)
+        # but will still be included in name if provided in model setting
+        if self.channel=="t":
             self.yukawa = yukawa
             if self.yukawa is None: raise ValueError("yukawa value must be provided for madgraph t-channel")
 
