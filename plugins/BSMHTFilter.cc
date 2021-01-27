@@ -6,6 +6,8 @@
 #include <vector>
 #include <cmath>
 #include <unordered_set>
+#include <iostream>
+#include <atomic>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -25,18 +27,44 @@ class BSMHTFilter : public edm::global::EDFilter<> {
 		explicit BSMHTFilter(const edm::ParameterSet&);
 		~BSMHTFilter() override {}
 
+		void incPass() const {nPass_++;}
+		void incFail() const {nFail_++;}
+
+		void beginJob() override {
+			nPass_ = 0;
+			nFail_ = 0;
+		}
+
+		void endJob() override {
+			if (verbose_) {
+				float eff = nPass_ + nFail_ > 0 ? ((double)nPass_) / (nPass_ + nFail_) : 0.0 ;
+				// Need this to *always* print, which is unreliable with CMSSW MessageLogger
+				std::cout
+					<< "BSMHTFilter efficiency: nPass: " << nPass_
+					<< "  nFail: " << nFail_
+					<< "  nTotal: " << nFail_ + nPass_
+					<< "  eff: " << eff
+					<< std::endl;
+			}
+		}
+
 		bool filter(edm::StreamID, edm::Event&, const edm::EventSetup&) const override;
 
 		static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 	private:
 		// member data
+		bool verbose_;
+		mutable std::atomic<int> nPass_;
+		mutable std::atomic<int> nFail_;
 		edm::GetterOfProducts<LHEEventProduct> getterOfProducts_;
 		double htMin_;
 		std::unordered_set<int> particleIDs_;
+
 };
 
 BSMHTFilter::BSMHTFilter(const edm::ParameterSet& iConfig) :
+	verbose_(iConfig.getParameter<bool>("verbose")),
 	getterOfProducts_(edm::ProcessMatch("*"), this),
 	htMin_(iConfig.getParameter<double>("htMin"))
 {
@@ -45,8 +73,10 @@ BSMHTFilter::BSMHTFilter(const edm::ParameterSet& iConfig) :
 	//insert default madgraph particles
 	particle_vec.insert(particle_vec.end(),{1,2,3,4,5,21});
 	particleIDs_ = std::unordered_set<int>(particle_vec.begin(),particle_vec.end());
-    //store the HT value
-    produces<double>("");
+	//store the HT value
+	produces<double>("");
+	nPass_ = 0;
+	nFail_ = 0;
 }
 
 bool BSMHTFilter::filter(edm::StreamID, edm::Event& iEvent, const edm::EventSetup& iSetup) const {
@@ -65,7 +95,7 @@ bool BSMHTFilter::filter(edm::StreamID, edm::Event& iEvent, const edm::EventSetu
 		const std::vector<std::pair<int,int>> momup = hepeup.MOTHUP;
 
 		for(unsigned i = 0; i < (unsigned)nup; ++i){
-			int PID    = idup[i];
+			int PID	= idup[i];
 			int status = istup[i];
 			int mom1id = std::abs(idup[momup[i].first-1]);
 			int mom2id = std::abs(idup[momup[i].second-1]);
@@ -83,19 +113,22 @@ bool BSMHTFilter::filter(edm::StreamID, edm::Event& iEvent, const edm::EventSetu
 
 #ifndef CMSSW71X
 	auto genHTptr = std::make_unique<double>(genHT);
-    iEvent.put(std::move(genHTptr));
+	iEvent.put(std::move(genHTptr));
 #else
-    std::auto_ptr<double> genHTptr(new double(genHT));
-    iEvent.put(genHTptr);
+	std::auto_ptr<double> genHTptr(new double(genHT));
+	iEvent.put(genHTptr);
 #endif
-	return genHT > htMin_;
+
+	bool pass = genHT > htMin_;
+	pass ? incPass() : incFail();
+	return pass;
 }
 
 void BSMHTFilter::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
 	edm::ParameterSetDescription desc;
 	desc.add<std::vector<int>>("particleIDs",{});
 	desc.add<double>("htMin",400);
-
+	desc.add<bool>("verbose",true);
 	descriptions.add("BSMHTFilter",desc);
 }
 

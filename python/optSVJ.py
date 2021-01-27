@@ -11,6 +11,7 @@ options.register("nogridpack", False, VarParsing.multiplicity.singleton, VarPars
 options.register("syst", False, VarParsing.multiplicity.singleton, VarParsing.varType.bool)
 options.register("channel", "s", VarParsing.multiplicity.singleton, VarParsing.varType.string)
 options.register("boost", 0.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
+options.register("mingenjetpt", 0.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mMediator", 3000.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("mDark", 20.0, VarParsing.multiplicity.singleton, VarParsing.varType.float)
 options.register("rinv", 0.3, VarParsing.multiplicity.singleton, VarParsing.varType.float)
@@ -56,4 +57,4 @@ if len(options.scan)>0:
     if len(options.inpre)>0: options.inpre += "_"+options.scan
 
 _helper = svjHelper()
-_helper.setModel(options.channel,options.mMediator,options.mDark,options.rinv,options.alpha,generate=not options.madgraph,boost=options.boost,yukawa=options.yukawa)
+_helper.setModel(options.channel,options.mMediator,options.mDark,options.rinv,options.alpha,generate=not options.madgraph,boost=options.boost,mingenjetpt=options.mingenjetpt,yukawa=options.yukawa)

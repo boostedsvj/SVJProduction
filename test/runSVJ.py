@@ -103,6 +103,15 @@ if options.signal:
         )
         process.ProductionFilterSequence += process.bsmHtFilter
 
+    # apply GenJet pt cut for boosted search
+    if options.mingenjetpt and hasattr(process,'ProductionFilterSequence'):
+        process.genjetptFilter = cms.EDFilter(
+            "GenJetPTFilter",
+            ptMin = cms.double(_helper.ptCut),
+            )
+        process.ProductionFilterSequence += process.pgen
+        process.ProductionFilterSequence += process.genjetptFilter
+
 # genjet/met settings - treat DM stand-ins as invisible
 _particles = ["genParticlesForJetsNoMuNoNu","genParticlesForJetsNoNu","genCandidatesForMET","genParticlesForMETAllVisible"]
 for _prod in _particles:
@@ -141,6 +150,8 @@ if hasattr(process,'genJetParticles') and hasattr(process,'genParticlesForJetsNo
             output_attr.outputCommands.extend([
                 'keep *_genParticlesForJets_*_*',
                 'keep *_genParticlesForJetsNoNu_*_*',
+                'keep *_genCandidatesForMET_*_*',
+                'keep *_genParticlesForMETAllVisible_*_*',
                 'keep *_bsmHtFilter_*_*',
             ])
 
